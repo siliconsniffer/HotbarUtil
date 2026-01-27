@@ -1,0 +1,34 @@
+name: Build and upload JAR
+
+on:
+  push:
+    branches: [ '**' ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: 'gradle'
+
+      - name: Build (Gradle)
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: '9.2.1'
+          arguments: build --no-daemon
+
+      - name: Upload built JAR(s)
+        uses: actions/upload-artifact@v4
+        with:
+          name: hotbarutil-jars
+          path: build/libs/**/*.jar

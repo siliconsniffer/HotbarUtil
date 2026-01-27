@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "hotbarutil",
+  "version": "${version}",
+  "name": "HotbarUtil",
+  "description": "",
+  "authors": [],
+  "contact": {},
+  "license": "unlicense",
+  "icon": "assets/hotbarutil/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "fabric-datagen": [
+      "org.silicon.hotbarutil.client.HotbarutilDataGenerator"
+    ],
+    "client": [
+      "org.silicon.hotbarutil.client.HotbarutilClient"
+    ],
+    "main": [
+      "org.silicon.hotbarutil.Hotbarutil"
+    ]
+  },
+  "mixins": [
+    "hotbarutil.mixins.json",
+    {
+      "config": "hotbarutil.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-language-kotlin": ">=${kotlin_loader_version}",
+    "fabric-api": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}

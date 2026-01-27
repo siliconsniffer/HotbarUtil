@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "org.silicon.hotbarutil.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "ScreenHandlerMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+  }
+}

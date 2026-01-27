@@ -3,7 +3,14 @@ name: Build and upload JAR
 on:
   push:
     branches: [ '**' ]
+    paths:
+      - 'src/*'
+      - '!*.md'
   pull_request:
+    branches: [ 'master' ]
+    paths:
+    - 'src/*'
+    - '!*.md'
   workflow_dispatch:
 
 jobs:

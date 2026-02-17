@@ -6,8 +6,6 @@ import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents
 import net.fabricmc.fabric.api.client.screen.v1.ScreenKeyboardEvents
 import net.minecraft.client.MinecraftClient
-import net.minecraft.client.gl.RenderPipelines
-import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.ingame.HandledScreen
 import net.minecraft.client.option.KeyBinding
 import net.minecraft.client.util.InputUtil
@@ -40,8 +38,8 @@ class HotbarutilClient : ClientModInitializer {
 
         ScreenEvents.AFTER_INIT.register { _, screen, _, _ ->
             if (screen is HandledScreen<*>) {
-                ScreenEvents.afterRender(screen).register { _, context, mouseX, mouseY, _ ->
-                    detectHoveredSlotAndRender(screen, context, mouseX, mouseY)
+                ScreenEvents.afterRender(screen).register { _, _, mouseX, mouseY, _ ->
+                    detectHoveredSlot(screen, mouseX, mouseY)
                 }
 
                 ScreenKeyboardEvents.afterKeyPress(screen).register { _, keyInput ->
@@ -54,9 +52,8 @@ class HotbarutilClient : ClientModInitializer {
         }
     }
 
-    private fun detectHoveredSlotAndRender(screen: HandledScreen<*>, context: DrawContext, mouseX: Int, mouseY: Int) {
-        val client = MinecraftClient.getInstance()
-        val player = client.player ?: return
+    private fun detectHoveredSlot(screen: HandledScreen<*>, mouseX: Int, mouseY: Int) {
+        val player = MinecraftClient.getInstance().player ?: return
         val accessor = screen as HandledScreenAccessor
         val screenX = accessor.getX()
         val screenY = accessor.getY()
@@ -73,10 +70,7 @@ class HotbarutilClient : ClientModInitializer {
 
             if (mouseX in slotX until slotX + 16 && mouseY in slotY until slotY + 16) {
                 lastHoveredSlotIndex = slotIndex
-            }
-
-            if (SlotLockManager.isSlotLocked(slotIndex)) {
-                context.drawTexture(RenderPipelines.GUI_TEXTURED, SLOT_LOCK_TEXTURE, slotX, slotY, 0f, 0f, 16, 16, 16, 16)
+                break
             }
         }
     }
@@ -93,7 +87,4 @@ class HotbarutilClient : ClientModInitializer {
         }
     }
 
-    companion object {
-        private val SLOT_LOCK_TEXTURE: Identifier = Identifier.of("hotbarutil", "textures/gui/slot_lock.png")
-    }
 }

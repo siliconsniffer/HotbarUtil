@@ -33,7 +33,7 @@ public class ItemStackMixin {
                 List<Text> tooltip = cir.getReturnValue();
                 if (!tooltip.isEmpty()) {
                     Text originalName = tooltip.getFirst();
-                    tooltip.set(0, Text.literal("[LOCKED] ").formatted(Formatting.RED).append(originalName.copy().formatted(Formatting.RESET)));
+                    tooltip.set(0, Text.empty().append(Text.literal("[LOCKED] ").formatted(Formatting.RED)).append(originalName));
                 }
                 break;
             }

@@ -24,48 +24,28 @@ public abstract class ScreenHandlerMixin {
         if (player == null) return;
 
         ScreenHandler handler = (ScreenHandler) (Object) this;
-        ItemStack cursorStack = handler.getCursorStack();
+        PlayerInventory inventory = player.getInventory();
 
-        if (slotIndex == -999 && !cursorStack.isEmpty()) {
-            if (player.getInventory() != null && isFromLockedHotbarSlot(player.getInventory(), cursorStack)) {
+        // Block dropping items outside the inventory if they came from a locked slot
+        if (slotIndex == -999 && !handler.getCursorStack().isEmpty()) {
+            if (isFromLockedHotbarSlot(inventory, handler.getCursorStack())) {
                 ci.cancel();
                 return;
             }
         }
 
-        if (actionType == SlotActionType.PICKUP && slotIndex >= 0) {
-            if (slotIndex < handler.slots.size()) {
-                Slot slot = getSlot(slotIndex);
-                if (isLockedHotbarSlot(player.getInventory(), slot)) {
-                    ci.cancel();
-                    return;
-                }
+        // Block throw of the selected item (Q key outside a slot)
+        if (actionType == SlotActionType.THROW && slotIndex == -1) {
+            if (SlotLockManager.INSTANCE.isSlotLocked(inventory.getSelectedSlot())) {
+                ci.cancel();
+                return;
             }
         }
 
-        if (actionType == SlotActionType.QUICK_MOVE && slotIndex >= 0) {
-            if (slotIndex < handler.slots.size()) {
-                Slot slot = getSlot(slotIndex);
-                if (isLockedHotbarSlot(player.getInventory(), slot)) {
-                    ci.cancel();
-                    return;
-                }
-            }
-        }
-
-        if (actionType == SlotActionType.THROW) {
-            if (slotIndex >= 0) {
-                if (slotIndex < handler.slots.size()) {
-                    Slot slot = getSlot(slotIndex);
-                    if (isLockedHotbarSlot(player.getInventory(), slot)) {
-                        ci.cancel();
-                        return;
-                    }
-                }
-            }
-            if (slotIndex == -1) {
-                int selectedSlot = player.getInventory().getSelectedSlot();
-                if (SlotLockManager.INSTANCE.isSlotLocked(selectedSlot)) {
+        // Block pickup, quick-move, and throw on locked hotbar slots
+        if (slotIndex >= 0 && slotIndex < handler.slots.size()) {
+            if (actionType == SlotActionType.PICKUP || actionType == SlotActionType.QUICK_MOVE || actionType == SlotActionType.THROW) {
+                if (isLockedHotbarSlot(inventory, getSlot(slotIndex))) {
                     ci.cancel();
                 }
             }
@@ -75,12 +55,9 @@ public abstract class ScreenHandlerMixin {
     @Unique
     private boolean isLockedHotbarSlot(PlayerInventory inventory, Slot slot) {
         if (inventory == null) return false;
-
         if (slot.inventory == inventory) {
-            int slotId = slot.getIndex();
-            if (slotId >= 0 && slotId < 9) {
-                return SlotLockManager.INSTANCE.isSlotLocked(slotId);
-            }
+            int index = slot.getIndex();
+            return index >= 0 && index < 9 && SlotLockManager.INSTANCE.isSlotLocked(index);
         }
         return false;
     }

@@ -25,28 +25,13 @@ class HotbarutilClient : ClientModInitializer {
     override fun onInitializeClient() {
         val category = KeyBinding.Category(Identifier.of("hotbarutil", "main"))
         hotbarUtilPrev = KeyBindingHelper.registerKeyBinding(
-            KeyBinding(
-                "key.hotbarutil.hotbar_util_prev",
-                InputUtil.Type.KEYSYM,
-                GLFW.GLFW_KEY_B,
-                category
-            )
+            KeyBinding("key.hotbarutil.hotbar_util_prev", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_B, category)
         )
         hotbarUtilNext = KeyBindingHelper.registerKeyBinding(
-            KeyBinding(
-                "key.hotbarutil.hotbar_util_next",
-                InputUtil.Type.KEYSYM,
-                GLFW.GLFW_KEY_N,
-                category
-            )
+            KeyBinding("key.hotbarutil.hotbar_util_next", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_N, category)
         )
         hotbarUtilToggLock = KeyBindingHelper.registerKeyBinding(
-            KeyBinding(
-                "key.hotbarutil.hotbar_util_togglock",
-                InputUtil.Type.KEYSYM,
-                GLFW.GLFW_KEY_L,
-                category
-            )
+            KeyBinding("key.hotbarutil.hotbar_util_togglock", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_L, category)
         )
 
         ClientTickEvents.END_CLIENT_TICK.register { _ ->
@@ -62,8 +47,7 @@ class HotbarutilClient : ClientModInitializer {
                 ScreenKeyboardEvents.afterKeyPress(screen).register { _, keyInput ->
                     if (hotbarUtilToggLock.matchesKey(keyInput)) {
                         val inventory = MinecraftClient.getInstance().player?.inventory ?: return@register
-                        val slotToToggle = lastHoveredSlotIndex ?: inventory.selectedSlot
-                        SlotLockManager.toggleSlotLock(slotToToggle)
+                        SlotLockManager.toggleSlotLock(lastHoveredSlotIndex ?: inventory.selectedSlot)
                     }
                 }
             }
@@ -72,47 +56,44 @@ class HotbarutilClient : ClientModInitializer {
 
     private fun detectHoveredSlotAndRender(screen: HandledScreen<*>, context: DrawContext, mouseX: Int, mouseY: Int) {
         val client = MinecraftClient.getInstance()
-        val handler = screen.screenHandler
+        val player = client.player ?: return
+        val accessor = screen as HandledScreenAccessor
+        val screenX = accessor.getX()
+        val screenY = accessor.getY()
 
         lastHoveredSlotIndex = null
 
-        val lockTexture = Identifier.of("hotbarutil", "textures/gui/slot_lock.png")
+        for (slot in screen.screenHandler.slots) {
+            if (slot.inventory != player.inventory) continue
+            val slotIndex = slot.index
+            if (slotIndex !in 0..8) continue
 
-        val screenPos = if (screen is HandledScreenAccessor) {
-            screen.getX() to screen.getY()
-        } else {
-            (context.scaledWindowWidth - 176) / 2 to (context.scaledWindowHeight - 166) / 2
-        }
+            val slotX = screenX + slot.x
+            val slotY = screenY + slot.y
 
-        val (screenX, screenY) = screenPos
+            if (mouseX in slotX until slotX + 16 && mouseY in slotY until slotY + 16) {
+                lastHoveredSlotIndex = slotIndex
+            }
 
-        for (slot in handler.slots) {
-            if (slot.inventory != null && slot.inventory == client.player?.inventory) {
-                val slotIndex = slot.index
-
-                val slotX = screenX + slot.x
-                val slotY = screenY + slot.y
-                if (mouseX >= slotX && mouseX < slotX + 16 && mouseY >= slotY && mouseY < slotY + 16) {
-                    if (slotIndex in 0..8) {
-                        lastHoveredSlotIndex = slotIndex
-                    }
-                }
-                if (slotIndex in 0..8 && SlotLockManager.isSlotLocked(slotIndex)) {
-                    context.drawTexture(RenderPipelines.GUI_TEXTURED, lockTexture, slotX, slotY, 0f, 0f, 16, 16, 16, 16)
-                }
+            if (SlotLockManager.isSlotLocked(slotIndex)) {
+                context.drawTexture(RenderPipelines.GUI_TEXTURED, SLOT_LOCK_TEXTURE, slotX, slotY, 0f, 0f, 16, 16, 16, 16)
             }
         }
     }
 
     private fun handleKeyPresses() {
-        val inventory = MinecraftClient.getInstance().player?.inventory ?: return
-
-        if (MinecraftClient.getInstance().currentScreen != null) return
+        val client = MinecraftClient.getInstance()
+        if (client.currentScreen != null) return
+        val inventory = client.player?.inventory ?: return
 
         when {
             hotbarUtilPrev.wasPressed() -> inventory.selectedSlot = (inventory.selectedSlot + 8) % 9
             hotbarUtilNext.wasPressed() -> inventory.selectedSlot = (inventory.selectedSlot + 1) % 9
             hotbarUtilToggLock.wasPressed() -> SlotLockManager.toggleSlotLock(inventory.selectedSlot)
         }
+    }
+
+    companion object {
+        private val SLOT_LOCK_TEXTURE: Identifier = Identifier.of("hotbarutil", "textures/gui/slot_lock.png")
     }
 }

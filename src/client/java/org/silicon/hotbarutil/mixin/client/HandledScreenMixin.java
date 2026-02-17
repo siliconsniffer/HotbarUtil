@@ -27,11 +27,10 @@ public abstract class HandledScreenMixin {
         if (client.player == null) return;
 
         PlayerInventory playerInventory = client.player.getInventory();
-        ItemStack cursorStack = handler.getCursorStack();
 
         // Block clicking outside inventory (-999) to drop items from locked slots
-        if (slotId == -999 && !cursorStack.isEmpty()) {
-            if (isFromLockedHotbarSlot(playerInventory, cursorStack)) {
+        if (slotId == -999 && !handler.getCursorStack().isEmpty()) {
+            if (isFromLockedHotbarSlot(playerInventory, handler.getCursorStack())) {
                 ci.cancel();
                 return;
             }
@@ -44,40 +43,22 @@ public abstract class HandledScreenMixin {
         }
 
         // Block swap keybind (number keys) that would affect locked slots
-        if (actionType == SlotActionType.SWAP) {
-            // button is the hotbar slot index (0-8) when using number keys
-            if (button >= 0 && button < 9 && SlotLockManager.INSTANCE.isSlotLocked(button)) {
-                ci.cancel();
-                return;
-            }
-        }
-
-        // Block throw action on locked slots (Q key while hovering)
-        if (actionType == SlotActionType.THROW && slot != null) {
-            if (isLockedHotbarSlot(playerInventory, slot)) {
-                ci.cancel();
-                return;
-            }
+        if (actionType == SlotActionType.SWAP && button >= 0 && button < 9 && SlotLockManager.INSTANCE.isSlotLocked(button)) {
+            ci.cancel();
         }
     }
 
     @Unique
     private boolean isLockedHotbarSlot(PlayerInventory inventory, Slot slot) {
-        if (inventory == null || slot == null || slot.inventory == null) return false;
-
         if (slot.inventory == inventory) {
-            int slotIndex = slot.getIndex();
-            if (slotIndex >= 0 && slotIndex < 9) {
-                return SlotLockManager.INSTANCE.isSlotLocked(slotIndex);
-            }
+            int index = slot.getIndex();
+            return index >= 0 && index < 9 && SlotLockManager.INSTANCE.isSlotLocked(index);
         }
         return false;
     }
 
     @Unique
     private boolean isFromLockedHotbarSlot(PlayerInventory inventory, ItemStack cursorStack) {
-        if (inventory == null) return false;
-
         for (int i = 0; i < 9; i++) {
             if (SlotLockManager.INSTANCE.isSlotLocked(i)) {
                 ItemStack hotbarStack = inventory.getStack(i);

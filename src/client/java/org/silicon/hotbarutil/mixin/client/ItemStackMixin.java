@@ -6,6 +6,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import org.silicon.hotbarutil.SlotLockManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -32,7 +33,7 @@ public class ItemStackMixin {
                 List<Text> tooltip = cir.getReturnValue();
                 if (!tooltip.isEmpty()) {
                     Text originalName = tooltip.getFirst();
-                    tooltip.set(0, Text.literal("§c[LOCKED] §r").append(originalName));
+                    tooltip.set(0, Text.literal("[LOCKED] ").formatted(Formatting.RED).append(originalName.copy().formatted(Formatting.RESET)));
                 }
                 break;
             }

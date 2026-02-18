@@ -15,5 +15,8 @@ way to prevent items from being dropped.
 - keybind to lock hotbar slots
 - keybind for previous and next hotbar slot
 
+## Screenshots
+<img width="1000" height="741" alt="image" src="https://github.com/user-attachments/assets/0386c7f2-f0a1-4920-a6a0-0637e3f7be5d" />
+
 ## Contributing
 Everyone is welcome to propose and contribute reasonable improvements.
